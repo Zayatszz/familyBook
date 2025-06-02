@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Person {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  lastName      String
+  firstName     String
+  gender        String?
+  birthDate     DateTime?
+  deathDate     DateTime?
+  description   String
+  audioUrl      String?
+
+  orderInFamily Int?
+  generation    Int?
+  spouseId      String?
+
+  media         Media[]
+
+  // Хүүхэд/эцэг эхийн холбоог PersonRelation загвараар холбож байна
+  parentRelations PersonRelation[] @relation("ChildToParent")
+  childRelations  PersonRelation[] @relation("ParentToChild")
+}
+
+model Media {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  personId  String   @db.ObjectId
+  type      String   // "image" | "video"
+  url       String
+  person    Person   @relation(fields: [personId], references: [id])
+}
+
+// ➕ Энэ загвар нь эцэг эх ба хүүхдийн хоорондын холбоог илэрхийлнэ
+model PersonRelation {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  parentId   String   @db.ObjectId
+  childId    String   @db.ObjectId
+
+  parent     Person   @relation("ParentToChild", fields: [parentId], references: [id])
+  child      Person   @relation("ChildToParent", fields: [childId], references: [id])
+}
