@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-
+import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -22,6 +22,7 @@ export default function AdminLayout({
       <AdminSidebar />
       <main className="flex-1 p-8 bg-white text-black overflow-y-auto">
         {children}
+         <Toaster position="top-right" />
       </main>
     </div>
   );

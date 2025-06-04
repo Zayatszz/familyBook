@@ -90,11 +90,36 @@ html {
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.page {
+/* .page {
   background: linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+} */
+.page {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url('/bgBook.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3; /* Бүдэгрүүлэх тохиргоо */
+  z-index: 0;
+}
+
+.page .page-content {
+  position: relative;
+  z-index: 1;
+}
+
 
 .page-content {
   width: 100%;
@@ -142,7 +167,8 @@ html {
 .pokemon-name {
   font-size: clamp(1rem, 3vw, 1.8rem);
   font-weight: 600;
-  color: #2c3e50;
+  /* color: #2c3e50; */
+  color: #a6c1db;
   margin-bottom: 5px;
 }
 
@@ -203,10 +229,10 @@ html {
 }
 
 .pokemon-description {
-  font-size: 14px;
-  color: #34495e;
+  font-size: 16px;
+  color: #d2dfee;
   margin-top: 8px;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 .demoPage {
@@ -278,17 +304,21 @@ html {
 
 .animated-scroll span {
   display: inline-block;
-  animation-name: scroll-up;
+  animation-name: scrollText;
   animation-timing-function: linear;
-  animation-iteration-count: 1;
-  /* animation-delay: 2s; */
+  animation-fill-mode: forwards;
+  animation-play-state: paused;
 }
 
-@keyframes scroll-up {
-  0% {
+.animated-scroll.playing span {
+  animation-play-state: running;
+}
+
+@keyframes scrollText {
+  from {
     transform: translateY(0%);
   }
-  100% {
+  to {
     transform: translateY(-100%);
   }
 }
@@ -296,6 +326,48 @@ html {
 
 
 
+/* Жишээ: 10s, 15s, 20s, 25s гэх мэт ангилалтай */
+.duration-15s span {
+  animation-duration: 15s;
+}
+.duration-25s span {
+  animation-duration: 25s;
+}
+.duration-35s span {
+  animation-duration: 35s;
+}
+.duration-45s span {
+  animation-duration: 45s;
+}
+
+.duration-55s span {
+  animation-duration: 55s;
+}
+.duration-65s span {
+  animation-duration: 65s;
+}
+.duration-85s span {
+  animation-duration: 85s;
+}
+.duration-105s span {
+  animation-duration: 105s;
+}
+.duration-125s span {
+  animation-duration: 125s;
+}
+/* .pokemon-description.animated-scroll span {
+  display: inline-block;
+  animation: scrollText linear forwards;
+  white-space: pre-wrap;
+}
+@keyframes scrollText {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+} */
 
 
 
@@ -324,7 +396,7 @@ html {
 }
 
 .text-side {
-  width: 80%;
+  width: 90%;
   height: 100%;
   overflow: hidden;
 }
@@ -343,4 +415,73 @@ html {
 .scrollable-text::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
+}
+
+
+/* хүрээ */
+
+.media-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.media-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.media-blur-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px);
+  transform: scale(1.2); /* бага зэрэг томруулах */
+  z-index: 0;
+  opacity: 1;
+}
+
+.media-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 4px solid #ccc;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+
+.text-side {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+}
+
+.side-image-wrapper {
+  width: 20%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.side-image {
+  height: 200%; /* 100%-аас их */
+  width: 200%;
+  object-fit: cover;
+  /* transform: translate(-15%, -25%);  */
+}
+
+
+.text-content {
+  width: 90%;
+  padding: 20px;
+  overflow: hidden;
 }

@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
       audioUrl: body.audioUrl || null,
       orderInFamily: body.orderInFamily ? parseInt(body.orderInFamily) : null,
       generation: body.familyPosition ? parseInt(body.familyPosition) : null,
+      parentOrder:body.parentOrder? parseInt(body.parentOrder) : null
     },
   });
 

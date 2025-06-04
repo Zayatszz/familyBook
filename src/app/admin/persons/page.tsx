@@ -1,52 +1,66 @@
 "use client";
-
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users } from "lucide-react";
+import { Users, Pencil, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
-const people = [
-  {
-    id: 1,
-    firstName: "Алцай",
-    lastName: "Антонио",
-    gender: "Эр",
-    birthDate: "1970-06-15",
-    generation: "3-р үе",
-    image: "https://randomuser.me/api/portraits/men/32.jpg"
-  },
-  {
-    id: 2,
-    firstName: "Маркус",
-    lastName: "Финн",
-    gender: "Эр",
-    birthDate: "1985-09-10",
-    generation: "2-р үе",
-    image: "https://randomuser.me/api/portraits/men/75.jpg"
-  },
-  {
-    id: 3,
-    firstName: "Жие",
-    lastName: "Ян",
-    gender: "Эм",
-    birthDate: "1992-12-05",
-    generation: "1-р үе",
-    image: "https://randomuser.me/api/portraits/women/15.jpg"
-  },
-  {
-    id: 4,
-    firstName: "Насимию",
-    lastName: "Данай",
-    gender: "Эм",
-    birthDate: "1980-03-22",
-    generation: "2-р үе",
-    image: "https://randomuser.me/api/portraits/women/50.jpg"
-  },
-];
+type Person = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  gender?: string;
+  birthDate?: string;
+  generation?: number;
+};
 
 export default function AdminPersonsPage() {
   const router = useRouter();
+  const [people, setPeople] = useState<Person[]>([]);
+
+  useEffect(() => {
+    fetch("/api/persons")
+      .then((res) => res.json())
+      .then((data) => setPeople(data))
+      .catch(() => setPeople([]));
+  }, []);
+
+  const deletePerson = async (id: string) => {
+  if (!confirm("Та энэ хүний мэдээллийг устгах уу?")) return;
+
+  try {
+    // Хүний медиа болон аудиог урьдчилан татаж авах
+    const resPerson = await fetch(`/api/persons/${id}`);
+    const person = await resPerson.json();
+
+      const resMedia = await fetch(`/api/uploaded?personId=${id}`);
+  const mediaData = await resMedia.json();
+
+  const mediaUrls = mediaData.urls;
+  const audioUrl = mediaData.audioUrl;
+
+    // DELETE хүсэлт явуулах
+    const res = await fetch(`/api/persons/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ mediaUrls, audioUrl }),
+    });
+
+    if (res.ok) {
+      toast.success("Амжилттай устгалаа");
+      setPeople((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      toast.error("Устгах үед алдаа гарлаа");
+    }
+  } catch (err) {
+    toast.error("Устгах үед алдаа гарлаа");
+    console.error("Delete error:", err);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -76,24 +90,38 @@ export default function AdminPersonsPage() {
               <th className="p-8 text-left">Хүйс</th>
               <th className="p-8 text-left">Төрсөн өдөр</th>
               <th className="p-8 text-left">Үе</th>
+              <th className="p-8 text-left">Үйлдэл</th>
             </tr>
           </thead>
           <tbody>
             {people.map((p, i) => (
               <tr
                 key={p.id}
-                onClick={() => router.push(`/admin/persons/${p.id}`)}
-                className="border-t border-gray-300 hover:bg-gray-100 cursor-pointer"
+                className="border-t border-gray-300 hover:bg-gray-100"
               >
                 <td className="p-8">{i + 1}</td>
                 <td className="p-8">{p.lastName}</td>
-                <td className="p-8 flex items-center gap-2">
-                  <img src={p.image} alt={p.firstName} className="w-8 h-8 rounded-full" />
-                  {p.firstName}
-                </td>
+                <td className="p-8">{p.firstName}</td>
                 <td className="p-8">{p.gender}</td>
-                <td className="p-8">{p.birthDate}</td>
-                <td className="p-8">{p.generation}</td>
+                <td className="p-8">{p.birthDate?.substring(0, 10)}</td>
+                <td className="p-8">{p.generation ? `${p.generation}-р үе` : ""}</td>
+                <td className="p-8 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/admin/persons/${p.id}`)}
+                  >
+                    <Pencil size={16} className="mr-1" /> Засах
+                  </Button>
+                  <Button
+                  className="bg-red-600"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deletePerson(p.id)}
+                  >
+                    <Trash2 size={16} className="mr-1 " /> Устгах
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>

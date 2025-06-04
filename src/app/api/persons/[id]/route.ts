@@ -1,26 +1,33 @@
 // src/app/api/persons/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // GET /api/persons/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } } // энэ хэлбэрийг ашиглана
 ) {
-  try {
-    const person = await prisma.person.findUnique({
-      where: { id: params.id },
-    });
+  const id = params.id; // энэ үед задаргаа нь синхрон байж болно
 
-    if (!person) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
+  const person = await prisma.person.findUnique({
+    where: { id },
+  });
 
-    return NextResponse.json(person);
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch person" }, { status: 500 });
+  if (!person) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  return NextResponse.json(person);
 }
+
+
 
 // PUT /api/persons/[id]
 export async function PUT(
@@ -48,5 +55,55 @@ export async function PUT(
     return NextResponse.json(updatedPerson);
   } catch (error) {
     return NextResponse.json({ error: "Failed to update person" }, { status: 500 });
+  }
+}
+
+// DELETE /api/persons/[id]
+// DELETE /api/persons/[id]
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
+
+  let mediaUrls: string[] = [];
+  let audioUrl: string | null = null;
+
+  try {
+    const body = await req.json();
+    mediaUrls = body.mediaUrls || [];
+    audioUrl = body.audioUrl || null;
+  } catch (err) {
+    // body ирээгүй тохиолдолд хоосон гэж үзнэ
+  }
+
+  try {
+    console.log("check this")
+
+
+    const deleteFromCloudinary = async (url: string, type: "image" | "video") => {
+      const parts = url.split("/");
+      const publicIdWithExt = parts[parts.length - 1];
+      const publicId = `urgiin_nom/${publicIdWithExt.split(".")[0]}`;
+        console.log("Cloudinary устгаж байна:", publicId, type);
+      await cloudinary.uploader.destroy(publicId, { resource_type: type });
+    };
+
+    for (const url of mediaUrls) {
+      const type = url.includes(".mp4") ? "video" : "image";
+      await deleteFromCloudinary(url, type);
+    }
+
+    if (audioUrl) {
+      await deleteFromCloudinary(audioUrl, "video");
+    }
+
+    await prisma.media.deleteMany({ where: { personId: id } });
+    await prisma.person.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete Error:", error);
+    return NextResponse.json({ error: "Устгах үед алдаа гарлаа" }, { status: 500 });
   }
 }

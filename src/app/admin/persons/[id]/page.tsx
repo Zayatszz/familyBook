@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import toast from "react-hot-toast"; 
 
 export default function EditPersonPage() {
   const router = useRouter();
   const { id } = useParams();
+  const [isSaving, setIsSaving] = useState(false); // 👈 нэмсэн хэсэг
   const [form, setForm] = useState({
     lastName: "",
     firstName: "",
@@ -54,12 +56,20 @@ export default function EditPersonPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`/api/persons/${id}`, {
+    setIsSaving(true); // 👈 хадгалахад орж байна
+
+    const res = await fetch(`/api/persons/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    router.push(`/admin/media/${id}`);
+
+    setIsSaving(false); // 👈 хадгалах дууссан
+     if (res.ok) {
+    toast.success("Амжилттай хадгалагдлаа ✅");
+  } else {
+    toast.error("Хадгалах үед алдаа гарлаа ❌");
+  }
   };
 
   return (
@@ -141,9 +151,14 @@ export default function EditPersonPage() {
             className="border-gray-300"
           />
         </div>
-        <Button type="submit" className="md:col-span-2 bg-pink-700 hover:bg-pink-900 px-10 py-8 text-white text-lg">
-          Хадгалах
+        <Button
+          type="submit"
+          className="md:col-span-2 bg-pink-700 hover:bg-pink-900 px-10 py-8 text-white text-lg"
+          disabled={isSaving}
+        >
+          {isSaving ? "Хадгалж байна..." : "Хадгалах"}
         </Button>
+
       </form>
     </div>
   );

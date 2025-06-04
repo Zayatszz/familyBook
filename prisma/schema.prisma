@@ -16,8 +16,10 @@ model Person {
   deathDate     DateTime?
   description   String
   audioUrl      String?
+  nameUrl      String?
 
   orderInFamily Int?
+  parentOrder Int?
   generation    Int?
   spouseId      String?
 
@@ -33,7 +35,8 @@ model Media {
   personId  String   @db.ObjectId
   type      String   // "image" | "video"
   url       String
-  person    Person   @relation(fields: [personId], references: [id])
+  person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
 }
 
 // ➕ Энэ загвар нь эцэг эх ба хүүхдийн хоорондын холбоог илэрхийлнэ

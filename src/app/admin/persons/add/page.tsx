@@ -16,6 +16,7 @@ export default function AddPersonPage() {
     gender: "",
     orderInFamily: "",
     familyPosition: "",
+    parentOrder:"",
     birthDate: "",
     deathDate: "",
     description: "",
@@ -76,14 +77,19 @@ const handleSubmit = async (e: React.FormEvent) => {
             <option value="Эмэгтэй">Эмэгтэй</option>
           </select>
         </div>
+        
+        <div>
+          <Label htmlFor="familyPosition" className="text-lg py-2 block">Хэддэх үе вэ?</Label>
+          <Input name="familyPosition" value={form.familyPosition} onChange={handleChange} className="py-8 border-gray-300" />
+        </div>
         <div>
           <Label htmlFor="orderInFamily" className="text-lg py-2 block">Айлын хэддэх хүүхэд вэ?</Label>
           <Input name="orderInFamily" value={form.orderInFamily} onChange={handleChange} className="py-8 border-gray-300" />
         </div>
 
         <div>
-          <Label htmlFor="familyPosition" className="text-lg py-2 block">Хэддэх үе вэ?</Label>
-          <Input name="familyPosition" value={form.familyPosition} onChange={handleChange} className="py-8 border-gray-300" />
+          <Label htmlFor="parentOrder" className="text-lg py-2 block">Энэ овогтой холбогдож буй аав/ээж aйлын хэддэх хүүхэд вэ?</Label>
+          <Input name="parentOrder" value={form.parentOrder} onChange={handleChange} className="py-8 border-gray-300" />
         </div>
         <div>
           <Label htmlFor="birthDate" className="text-lg py-2 block">Төрсөн өдөр</Label>

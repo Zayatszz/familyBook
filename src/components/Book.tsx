@@ -1,175 +1,85 @@
-// Book.tsx
+// Refactored Book.tsx
 import React, { useRef, useState, useEffect } from "react";
 import HTMLFlipBook from "react-pageflip";
-import ImageSlider from "./ImageSlider";
-
-type Pokemon = {
-  id: string;
-  name: string;
-  types: string[];
-  description: string;
-};
 
 const Book: React.FC = () => {
-  // const flipBookRef = useRef<any>(null);
-const flipBookRef = useRef<any>(null);
+  const flipBookRef = useRef<any>(null);
   const [showCover, setShowCover] = useState(true);
-  const [shouldFlipFirstPage, setShouldFlipFirstPage] = useState(false); // ✨ шинэ state
-const [isFlippingCover, setIsFlippingCover] = useState(false);
+  const [isFlippingCover, setIsFlippingCover] = useState(false);
+  const [flipIndex, setFlipIndex] = useState(0);
+  const [personIndex, setPersonIndex] = useState<string[]>([]);
+  const [personData, setPersonData] = useState<Record<number, any>>({});
+  const [mediaData, setMediaData] = useState<Record<number, any[]>>({});
+  const singleDescriptionRef = useRef<HTMLParagraphElement | null>(null);
+  const [currentDuration, setCurrentDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  // ✨ cover дарахад
-const handleCoverClick = () => {
-  setIsFlippingCover(true); // flip анимэйшн эхлүүлнэ
-//  setShowCover(false); 
-  setTimeout(() => {
-    setShowCover(false); // flip дуусмагц ном харуулна
-    // setShouldFlipFirstPage(true); // дараагийн хуудас руу flip хийнэ
-  }, 600); // анимэйшний хугацаатай ижил байх ёстой
-};
-
-
-  // ✨ showCover=false болсон үед flip хийх
   useEffect(() => {
-    if (!showCover && shouldFlipFirstPage && flipBookRef.current) {
-      setTimeout(() => {
-        flipBookRef.current.pageFlip().flipNext();
-        setShouldFlipFirstPage(false); // дахин битгий flip хийгээрэй
-      }, 300); // ном render болох хугацаа
-    }
-  }, [showCover, shouldFlipFirstPage]);
-  // const [showCover, setShowCover] = useState(true);
+    const fetchIndex = async () => {
+      console.log("iishee orjinuda")
+      const res = await fetch("/api/personIndex");
+      const data = await res.json();
+      setPersonIndex(data);
+      console.log("check index data: ", data)
+    };
+    fetchIndex();
+  }, []);
 
-  const pokemonData: Pokemon[] = [
-     {
-      id: "006",
-      name: "Цэвээнжав Заяа",
-      types: ["Fire", "Flying"],
-       description:
-        "****!!!!!!!!!!!!!!!!!!!t messagi changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society End*****************************************)))))))))))))",
-    
-      },
-    {
-      id: "006",
-      name: "Charizard",
-      types: ["Fire", "Flying"],
-       description:
-        "****!!!!!!!!!!!!!!!!!!!t messagi changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society End*****************************************)))))))))))))",
-    
-      },
-    {
-      id: "025",
-      name: "Pikachu",
-      types: ["Electric"],
-      description:
-        "When Pikachu meet, they touch tails to exchange electricity as a greeting.",
-    },
-    {
-      id: "125",
-      name: "Electabuzz",
-      types: ["Electric"],
-      description:
-        "Often kept at power plants to regulate electricity. Competes with others to attract lightning during storms.",
-    },
-    {
-      id: "185",
-      name: "Sudowoodo",
-      types: ["Rock"],
-      description:
-        "Despite looking like a tree, its body is more like rock. Hates water and hides when it rains.",
-    },
-    {
-      id: "448",
-      name: "Lucario",
-      types: ["Fighting", "Steel"],
-      description:
-        "****!!!!!!!!!!!!!!!!!!!t messagi changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society Text messaging, or texting, is the act of composing and sending electronic messages, typically consisting of alphabetic and numeric characters, between two or more users of mobile phones, tablet computers, smartwatches, desktops/laptops, or another type of compatible computer. Text messages may be sent over a cellular network or may also be sent via satellite or Internet connection The term originally referred to messages sent using the Short Message Service (SMS) on mobile devices. It has grown beyond alphanumeric text to include multimedia messages using the Multimedia Messaging Service (MMS) and Rich Communication Services (RCS), which can contain digital images, videos, and sound content, as well as ideograms known as emoji (happy faces, sad faces, and other icons), and on various instant messaging apps. Text messaging has been an extremely popular medium of communication since the turn of the century and has also influenced changes in society End*****************************************)))))))))))))",
-    
-      },
-    {
-      id: "658",
-      name: "Greninja",
-      types: ["Water", "Dark"],
-      description:
-        "Creates throwing stars from compressed water that can slice through metal when thrown at high speed.",
-    },
-    {
-      id: "491",
-      name: "Darkrai",
-      types: ["Dark"],
-      description:
-        "A legendary Pokémon that appears on moonless nights, putting people to sleep and giving them nightmares.",
-    },
-  ];
+ const handleCoverClick = () => {
+  setFlipIndex(0);
+  const personLogicalIndex = Math.floor(0);
+  fetchPersonData(personLogicalIndex);
+  setIsFlippingCover(true);
 
-  const descriptionRef = useRef<HTMLParagraphElement>(null);
-const [shouldAnimate, setShouldAnimate] = useState(false);
+  setTimeout(() => {
+    setShowCover(false);
 
-useEffect(() => {
-  const el = descriptionRef.current;
-  if (el && el.scrollHeight > el.clientHeight) {
-    setShouldAnimate(true); // текст багтахгүй бол animate
-  }
-}, []);
-
-  const imageUrls = [
-    `https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/006.png`,
-     `https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/025.png`,
-     `https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/125.png`,
-     `https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/185.png`,
-  ];
-    const mediaItems = [
-    { type: "image", url: "https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/006.png" },
-    { type: "image", url: "https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/025.png" },
-    { type: "video", url: "/video/food.mp4" },
-    { type: "image", url: "https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/125.png" },
-    { type: "image", url: "https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/185.png" },
-  ];
-    const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
-    useEffect(() => {
-    const currentItem = mediaItems[currentMediaIndex];
-    let timeout: any;
-
-    if (currentItem.type === "video") {
-      const video = document.createElement("video");
-      video.src = currentItem.url;
-      video.onloadedmetadata = () => {
-        timeout = setTimeout(() => {
-          setCurrentMediaIndex((prev) => (prev + 1) % mediaItems.length);
-        }, video.duration * 1000);
-      };
-    } else {
-      timeout = setTimeout(() => {
-        setCurrentMediaIndex((prev) => (prev + 1) % mediaItems.length);
-      }, 5000);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [currentMediaIndex]);
-
-const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-
-useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % imageUrls.length);
-  }, 5000); // 2 секунд тутамд зураг солигдоно
-
-  return () => clearInterval(interval); // цэвэрлэх
-}, []);
-const descriptionRefs = useRef<(HTMLParagraphElement | null)[]>([]);
-const [animationDurations, setAnimationDurations] = useState<number[]>([]);
-
-const [flipIndex, setFlipIndex] = useState(0);
-
-const handlePageFlip = (e: any) => {
-  setFlipIndex(e.data); // одоогийн хуудасны индекс
+    // ✅ FlipBook бүрэн mount болсны дараа 200ms хүлээгээд scroll trigger хийе
+    setTimeout(() => {
+      if (flipBookRef.current) {
+        flipBookRef.current.pageFlip().flip(0); // trigger flip event
+      }
+    }, 200);
+  }, 2000); // энэ нь cover flip анимэйшний хугацаа
 };
 
-const singleDescriptionRef = useRef<HTMLParagraphElement | null>(null);
-const [currentDuration, setCurrentDuration] = useState(0);
+
+  const handlePageFlip = (e: any) => {
+    const newIndex = e.data;
+    setFlipIndex(newIndex);
+    const personLogicalIndex = Math.floor(newIndex / 2);
+    fetchPersonData(personLogicalIndex);
+  };
+
+  const fetchPersonData = async (index: number) => {
+    console.log("check index: ", index)
+    if (personData[index]) return;
+    const personId = personIndex[index];
+    console.log("check personId: ", personId)
+    if (!personId) return;
+
+    const res = await fetch(`/api/persons/${personId}`);
+    const person = await res.json();
+    console.log("check person: ", person)
+
+    const mediaRes = await fetch(`/api/uploaded?personId=${personId}`);
+    const media = await mediaRes.json();
+    console.log("media: ", media)
+
+    setPersonData((prev) => ({ ...prev, [index]: person }));
+    setMediaData((prev) => ({ ...prev, [index]: media }));
+  };
+
+  
 
 useEffect(() => {
+  const personLogicalIndex = Math.floor(flipIndex / 2);
+  const person = personData[personLogicalIndex];
+
+  if (!person || showCover) return;
+
   const timeout = setTimeout(() => {
+    console.log("iiishee oryoo");
     requestAnimationFrame(() => {
       const el = singleDescriptionRef.current;
       if (!el) return;
@@ -177,57 +87,119 @@ useEffect(() => {
       const containerHeight = el.clientHeight;
       const contentHeight = el.scrollHeight;
       const distance = contentHeight - containerHeight;
-      const speed = 40;
-      const duration = distance > 0 ? Math.max(distance / speed, 2) : 0;
-
-      console.log(
-  `📄 Active page: ${flipIndex}, height=${containerHeight}, scroll=${contentHeight}, duration=${duration}s\n📝 Description: ${el.innerText}`
-);
-
+      const speed = 10; // илүү удаан гүйлгэх
+      const duration = distance > 0 ? Math.max(distance / speed, 5) : 0;
+      console.log("duration:", duration);
       setCurrentDuration(duration);
     });
   }, 300);
 
   return () => clearTimeout(timeout);
-}, [flipIndex, showCover]);
+}, [flipIndex, personData, showCover]);
 
-// audio section:
- const audioRef = useRef<HTMLAudioElement>(null);
- useEffect(() => {
-  if (!audioRef.current) return;
 
-  const totalPages = pokemonData.length * 2; // 2 хуудсаар задарч байгааг харгалз
-  if (flipIndex >= totalPages - 1) {
-    audioRef.current.pause(); // Сүүлийн хуудас дээр зогсооно
-  } else {
-    audioRef.current.play().catch(() => {}); // Хэрэв тоглоогүй байвал үргэлжлүүлнэ
-  }
-}, [flipIndex, showCover]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const totalPages = personIndex.length * 2;
+    if (flipIndex >= totalPages - 1) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [flipIndex, showCover]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!flipBookRef.current) return;
+      const pageFlip = flipBookRef.current.pageFlip();
+      if (e.key === "ArrowRight") pageFlip.flipNext();
+      else if (e.key === "ArrowLeft") pageFlip.flipPrev();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const [currentMediaIndex, setCurrentMediaIndex] = useState<Record<number, number>>({});
 
 useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (!flipBookRef.current) return;
+  const timers: NodeJS.Timeout[] = [];
 
-    const pageFlip = flipBookRef.current.pageFlip();
+  Object.keys(mediaData).forEach((key) => {
+    const i = parseInt(key);
+    const urls = mediaData[i]?.urls;
+    if (!urls || urls.length === 0) return;
 
-    if (e.key === "ArrowRight") {
-      pageFlip.flipNext();
-    } else if (e.key === "ArrowLeft") {
-      pageFlip.flipPrev();
+    const currentIndex = currentMediaIndex[i] ?? 0;
+    const currentUrl = urls[currentIndex];
+
+    const timeout = setTimeout(() => {
+      setCurrentMediaIndex((prev) => ({
+        ...prev,
+        [i]: (currentIndex + 1) % urls.length,
+      }));
+    }, currentUrl.includes(".mp4") ? 8000 : 5000); // бичлэг удаан тоглоно
+
+    timers.push(timeout);
+  });
+
+  return () => timers.forEach(clearTimeout);
+}, [mediaData, currentMediaIndex]);
+
+const autoScrollTriggeredRef = useRef(false);
+
+const scrollRef = useRef<HTMLDivElement | null>(null);
+useEffect(() => {
+  if (!scrollRef.current || showCover) return;
+
+  const container = singleDescriptionRef.current;
+  const content = scrollRef.current;
+
+  if (!container || !content) return;
+
+  const distance = content.scrollHeight - container.clientHeight;
+  const durationMs = currentDuration * 1000;
+
+  let startTime: number | null = null;
+  let animationFrameId: number;
+
+  autoScrollTriggeredRef.current = false; // ✅ always reset on new page
+
+  const step = (timestamp: number) => {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+
+    const progress = Math.min(elapsed / durationMs, 1);
+    container.scrollTop = distance * progress;
+
+    if (progress < 1) {
+      animationFrameId = requestAnimationFrame(step);
+    } else if (!autoScrollTriggeredRef.current) {
+      autoScrollTriggeredRef.current = true;
+
+      // ✅ 3 сек хүлээгээд дараагийн хуудсанд flip хийнэ (зөвхөн нэг удаа)
+      setTimeout(() => {
+        const totalPages = personIndex.length * 2;
+        if (flipBookRef.current && flipIndex < totalPages - 1) {
+          flipBookRef.current.pageFlip().flipNext();
+        }
+      }, 3000);
     }
   };
 
-  document.addEventListener("keydown", handleKeyDown);
-  return () => {
-    document.removeEventListener("keydown", handleKeyDown);
-  };
+  container.scrollTop = 0;
+  animationFrameId = requestAnimationFrame(step);
+
+  return () => cancelAnimationFrame(animationFrameId);
+}, [flipIndex, currentDuration, showCover]);
+useEffect(() => {
+  if (audioRef.current) {
+    audioRef.current.volume = 0.4; // 0.0 (чимээгүй) - 1.0 (хамгийн чанга)
+  }
 }, []);
 
   return (
-     <>
-      {/* <audio ref={audioRef} src="/audio/piano.mp3" autoPlay hidden /> */}
-      <audio ref={audioRef} src="/audio/piano.mp3" autoPlay loop hidden />
-
+    <>
+      <audio ref={audioRef} src="/audio/taliinMongol.mp3" autoPlay loop hidden />
       {showCover ? (
         <div className="cover-wrapper" onClick={handleCoverClick}>
           <div
@@ -245,60 +217,97 @@ useEffect(() => {
         </div>
       ) : (
         <HTMLFlipBook
-         ref={flipBookRef}
+          ref={flipBookRef}
           onFlip={handlePageFlip}
           width={768}
           height={700}
           maxShadowOpacity={0.5}
-          drawShadow={true}
+          drawShadow
           showCover={false}
           size="fixed"
           mobileScrollSupport={false}
           className="flipbook-custom"
         >
-          {pokemonData.map((pokemon, index) => [
-            <div className="page" key={`${pokemon.id}-desc`}>
+          {personIndex.map((id, i) => [
+            <div className="page" key={`${id}-desc`}>
               <div className="page-content">
+                
                 <div className="text-side single-page">
-                  <h2 className="pokemon-name">{pokemon.name} -{pokemon.id}</h2>
-                  <p className="pokemon-number">#{pokemon.id} -{index}-{flipIndex}</p>
-                  <div>
-                    {pokemon.types.map((type) => (
-                      <span key={type} className={`pokemon-type type-${type.toLowerCase()}`}>{type}</span>
-                    ))}
-                  </div>
-                  <p
-                    ref={(el) => {
-                      if (index === flipIndex/2) {
-                        singleDescriptionRef.current = el;
-                      }
+                   <div className="side-image-wrapper">
+                  {/* <img
+                     src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+                    alt="side"
+                    className="side-image"
+                  /> */}
+                  {mediaData[i]?.nameUrl && (
+                  <img
+                    src={mediaData[i].nameUrl}
+                    alt="Монгол бичгийн нэр"
+                    className="side-image"
+                    style={{
+                      maxHeight: "100%",
+                      maxWidth: "100%",
+                      objectFit: "contain",
                     }}
-                    className={`pokemon-description ${index === flipIndex/2 && currentDuration ? "animated-scroll" : ""}`}
-                  >
-                    <span style={{ animationDuration: `${currentDuration}s` }}>{pokemon.description}</span>
-                  </p>
+                  />
+                )}
+
                 </div>
-                <div className="page-number">Хуудас {index * 2 + 1}</div>
+                <div  className="text-content">
+                    <h2 className="pokemon-name">Хошууд овогт Сүхээгийн {personData[i]?.lastName}гийн {personData[i]?.firstName} </h2>
+                    <div
+                      ref={(el) => {
+                        if (i === Math.floor(flipIndex / 2)) singleDescriptionRef.current = el;
+                      }}
+                      className="pokemon-description"
+                    >
+                      <div ref={i === Math.floor(flipIndex / 2) ? scrollRef : null}>
+                        {personData[i]?.description}
+                      </div>
+                    </div>
+
+                </div>
+      
+                
+
+
+                </div>
               </div>
             </div>,
-            <div className="page" key={`${pokemon.id}-image`}>
-              <div className="page-content">
-                <div className="">
-                  {/* <ImageSlider /> */}
-                  {mediaItems[currentMediaIndex].type === "video" ? (
-                    <video src={mediaItems[currentMediaIndex].url} autoPlay muted controls style={{ width: "100%", height: "100%" }} />
-                  ) : (
-                    <img src={mediaItems[currentMediaIndex].url} alt="media"  style={{
-        transition: "opacity 0.5s ease",
-        maxHeight: "100%",
-        maxWidth: "100%",
-        objectFit: "contain",
-      }} />
-                  )}
-                </div>
-                <div className="page-number">Хуудас {index * 2 + 2}</div>
-              </div>
-            </div>
+            
+
+<div className="page" key={`${id}-media`}>
+  <div className="page-content media-wrapper">
+    {mediaData[i]?.urls?.length ? (
+      mediaData[i].urls[currentMediaIndex[i] ?? 0].includes(".mp4") ? (
+        <video
+          className="media-frame"
+          src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+          autoPlay
+          muted
+          controls
+        />
+      ) : (
+        <div className="media-container">
+          <img
+            className="media-blur-bg"
+            src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+            alt="background blur"
+          />
+          <img
+            className="media-frame"
+            src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+            alt="person"
+          />
+        </div>
+      )
+    ) : (
+      <div>Loading media...</div>
+    )}
+  </div>
+</div>
+
+
           ])}
         </HTMLFlipBook>
       )}
