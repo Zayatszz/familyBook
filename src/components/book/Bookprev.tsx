@@ -6,7 +6,6 @@ import MediaPage from "./MediaPage";
 import { usePersonIndex } from "@/hooks/book/usePersonIndex";
 import { useAutoMediaSwitch } from "@/hooks/book/useAutoMediaSwitch";
 import { useFetchPersonData } from "@/hooks/book/useFetchPersonData";
-import { useFetchPersonDataT } from "@/hooks/book/useFetchPersonDataT";
 import { useAutoScroll } from "@/hooks/book/useAutoScroll";
 import { useAudioControl } from "@/hooks/book/useAudioControl";
 import { useFlipControls } from "@/hooks/book/useFlipControls";
@@ -14,7 +13,6 @@ import { useCalculateScrollDuration } from "@/hooks/book/useCalculateScrollDurat
 import CoverPage from "./CoverPage";
 import { usePersonsGroupedByGeneration } from "@/hooks/book/usePersonsGroupedByGeneration";
 import { useBookSequence } from "@/hooks/book/useBookSequence";
-import RecursiveCircleTree from "../RecursiveCircleTree";
 
 const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
     const flipBookRef = useRef<any>(null);
@@ -47,6 +45,10 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
   console.log("groupedByGeneration in book: ", groupedByGeneration)
     console.log("bookSequence in book: ", bookSequence)
 
+    //Хүмүүсийг харуулах жагсаалт ямар байх дарааллыг авна аа.
+    const personIndex = usePersonIndex();
+
+    console.log("person INdex: ", personIndex)
     const handleCoverClick = () => {
         setFlipIndex(0);
         const personLogicalIndex = Math.floor(0);
@@ -64,40 +66,17 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
         }, 2000); // энэ нь cover flip анимэйшний хугацаа
     };
 
-    const [singlePageMode, setSinglePageMode] = useState(false);
-    const handlePageFlip = (e: any) => {
-         
-        const newIndex = e.data;
-     
-        setFlipIndex(newIndex);
-        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", newIndex)
-    const personLogicalIndex = Math.floor(newIndex / 2);
-    console.log("personLogicalIndexaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", personLogicalIndex)
-        // fetchPersonData(personLogicalIndex);
-        const currentEntry = bookSequence[personLogicalIndex];
-        if (currentEntry?.type === "tree") {
-            console.log("treeshdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-            setSinglePageMode(true);
-        } else {
-            console.log("hunshdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",currentEntry )
-            setSinglePageMode(false);
-        }
 
-        if (currentEntry?.type === "person") {
-            fetchPersonData(personLogicalIndex);
-        }
+    const handlePageFlip = (e: any) => {
+        const newIndex = e.data;
+        setFlipIndex(newIndex);
+        const personLogicalIndex = Math.floor(newIndex / 2);
+        fetchPersonData(personLogicalIndex);
     };
 
-    // const handlePageFlip = (e: any) => {
-    //     const newIndex = e.data;
-    //     setFlipIndex(newIndex);
-    //     const personLogicalIndex = Math.floor(newIndex / 2);
-    //     fetchPersonData(personLogicalIndex);
-    // };
-
     // Тухайн хуудсан дахь хүний зураг бичлэг зэрэг бусад бүх мэдээлэл
-    const fetchPersonData = useFetchPersonDataT(
-        bookSequence,
+    const fetchPersonData = useFetchPersonData(
+        personIndex,
         personData,
         setPersonData,
         mediaData,
@@ -130,7 +109,7 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
         singleDescriptionRef,
         scrollRef,
         onAutoFlip: () => {
-            const totalPages = bookSequence.length * 2;
+            const totalPages = personIndex.length * 2;
             if (flipBookRef.current && flipIndex < totalPages - 1) {
                 flipBookRef.current.pageFlip().flipNext();
             }
@@ -142,9 +121,8 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
         audioRef,
         flipIndex,
         showCover,
-        personCount: bookSequence.length,
+        personCount: personIndex.length,
     });
-
 
     return (
         <>
@@ -153,73 +131,39 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
                 <CoverPage onClick={handleCoverClick} isFlipping={isFlippingCover} />
             ) : (
                 <HTMLFlipBook
-  ref={flipBookRef}
-  onFlip={handlePageFlip}
-  width={singlePageMode ? 1536 : 768}
-  height={700}
-  size="fixed"
-  showCover={false}
-  drawShadow
-  mobileScrollSupport={false}
-  className="flipbook-custom"
-//   minWidth={singlePageMode ? 768 : 768}
-//   maxWidth={singlePageMode ? 768 : 1536}
-  minHeight={700}
-  maxHeight={700}
-  maxShadowOpacity={0.5}
-  style={{
-    transition: "width 0.4s ease",
-  }}
->
+                    ref={flipBookRef}
+                    onFlip={handlePageFlip}
+                    width={768}
+                    height={700}
+                    maxShadowOpacity={0.5}
+                    drawShadow
+                    showCover={false}
+                    size="fixed"
+                    mobileScrollSupport={false}
+                    className="flipbook-custom"
+                >
+                    {personIndex.map((id, i) => [
+                        <div className="page" key={`${id}-desc`}>
+                            <PersonPage
+                                index={i}
+                                flipIndex={flipIndex}
+                                personData={personData}
+                                mediaData={mediaData}
+                                currentMediaIndex={currentMediaIndex}
+                                singleDescriptionRef={singleDescriptionRef}
+                                scrollRef={scrollRef}
+                            />
 
-        {bookSequence.map((entry, i) => {
-  if (entry.type === "person") {
-    return [
-      <div className="page" key={`desc-${entry.id}`}>
-        <PersonPage
-          index={i}
-          flipIndex={flipIndex}
-          personData={personData}
-          mediaData={mediaData}
-          currentMediaIndex={currentMediaIndex}
-          singleDescriptionRef={singleDescriptionRef}
-          scrollRef={scrollRef}
-        />
-      </div>,
-      <div className="page" key={`media-${entry.id}`}>
-        <MediaPage
-          index={i}
-          mediaData={mediaData}
-          currentMediaIndex={currentMediaIndex}
-        />
-      </div>,
-    ];
-  } else if (entry.type === "tree") {
-    return [
-      <div className="page" key={`tree-${entry.rootId.id}-1`}>
-  <RecursiveCircleTree
-    rootId={entry.rootId.id}
-    personMap={personMap}
-    familyMap={familyMap}
-  />
-</div>,
-<div className="page" key={`tree-${entry.rootId.id}-2`}>
-  <RecursiveCircleTree
-    rootId={entry.rootId.id}
-    personMap={personMap}
-    familyMap={familyMap}
-    focusOnlyChildren
-  />
-</div>
-
-
-    ];
-  } else {
-    return null;
-  }
-})}
-
-        </HTMLFlipBook>
+                        </div>,
+                        <div className="page" key={`${id}-media`}>
+                            <MediaPage
+                                index={i}
+                                mediaData={mediaData}
+                                currentMediaIndex={currentMediaIndex}
+                            />
+                        </div>
+                    ])}
+                </HTMLFlipBook>
             )}
         </>
     );

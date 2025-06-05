@@ -40,7 +40,7 @@ const PersonPage: React.FC<PersonPageProps> = ({
             </div>
             <div className="text-content">
               <h2 className="pokemon-name">
-                Хошууд овогт Сүхээгийн {personData[index]?.lastName}гийн {personData[index]?.firstName}
+                Хошууд овогт Сүхээгийн {personData[index]?.lastName}гийн {personData[index]?.firstName} -{personData[index]?.id}
               </h2>
               <div
                 ref={(el) => {
