@@ -14,12 +14,15 @@ export async function GET(req: NextRequest) {
 
   const person = await prisma.person.findUnique({
     where: { id: personId },
-    select: { audioUrl: true, nameUrl: true },
+    select: { audioUrl: true, nameUrl: true, imageUrl:true, lastName:true, firstName:true },
   });
 
   return NextResponse.json({
     urls: media.map((m) => m.url),
     audioUrl: person?.audioUrl || null,
     nameUrl: person?.nameUrl || null,
+    imageUrl: person?.imageUrl || null,
+    lastName: person?.lastName || null,
+    firstName: person?.firstName || null,
   });
 }

@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     data: {
       lastName: body.lastName,
       firstName: body.firstName,
+      nickname: body.nickname,
       gender: body.gender,
       birthDate: body.birthDate ? new Date(body.birthDate) : undefined,
       deathDate: body.deathDate ? new Date(body.deathDate) : undefined,

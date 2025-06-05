@@ -5,6 +5,7 @@ export type Person = {
   firstName: string;
   lastName: string;
   generation: number;
+  orderInFamily?: number; // ✨ энэ талбар орсон эсэхээ баталгаажуул
   imageUrl?: string;
   nameUrl?: string;
 };
@@ -28,6 +29,16 @@ export const usePersonsGroupedByGeneration = () => {
         groupedMap[gen].push(person);
         map[person.id] = person;
       });
+
+      // ✨ БҮХ generation-г orderInFamily-аар сортлоно
+      Object.keys(groupedMap).forEach((genStr) => {
+        const gen = parseInt(genStr, 10);
+        groupedMap[gen].sort(
+          (a, b) => (a.orderInFamily ?? Number.MAX_SAFE_INTEGER) - (b.orderInFamily ?? Number.MAX_SAFE_INTEGER)
+        );
+      });
+      console.log("grouped map in by Gennssssssssss: ", groupedMap)
+ console.log(" map in by Gennssssssssss: ", map)
 
       setGrouped(groupedMap);
       setPersonMap(map);

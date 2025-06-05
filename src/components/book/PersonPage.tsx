@@ -20,6 +20,10 @@ const PersonPage: React.FC<PersonPageProps> = ({
   singleDescriptionRef,
   scrollRef,
 }) => {
+  const displayName =
+  personData[index]?.nickname ||
+  `${personData[index]?.lastName || ""} ${personData[index]?.firstName || ""}`;
+
   return (
     <>
         <div className="page-content">
@@ -40,7 +44,7 @@ const PersonPage: React.FC<PersonPageProps> = ({
             </div>
             <div className="text-content">
               <h2 className="pokemon-name">
-                Хошууд овогт Сүхээгийн {personData[index]?.lastName}гийн {personData[index]?.firstName} -{personData[index]?.id}
+                {displayName}
               </h2>
               <div
                 ref={(el) => {

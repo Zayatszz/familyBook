@@ -18,6 +18,7 @@ export default function EditPersonPage() {
   const [form, setForm] = useState({
     lastName: "",
     firstName: "",
+    nickname:"",
     gender: "",
     orderInFamily: "",
     familyPosition: "",
@@ -60,6 +61,7 @@ useEffect(() => {
         setForm({
           lastName: data.lastName || "",
           firstName: data.firstName || "",
+          nickname: data.nickname || "",
           gender: data.gender || "",
           orderInFamily: data.orderInFamily?.toString() || "",
           familyPosition: data.generation?.toString() || "",
@@ -158,6 +160,10 @@ useEffect(() => {
           <Input name="firstName" value={form.firstName} onChange={handleChange} className="py-8 border-gray-300" />
         </div>
 
+        <div>
+          <Label htmlFor="nickname" className="text-lg py-2 block">Номон дээр харагдах нэр</Label>
+          <Input name="nickname" value={form.nickname} onChange={handleChange} className="py-8 border-gray-300" />
+        </div>
         <div>
           <Label htmlFor="gender" className="text-lg py-2 block">Хүйс</Label>
           <select

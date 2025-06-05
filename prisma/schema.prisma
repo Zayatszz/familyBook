@@ -11,12 +11,14 @@ model Person {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   lastName      String
   firstName     String
+  nickname      String?
   gender        String?
   birthDate     DateTime?
   deathDate     DateTime?
   description   String
   audioUrl      String?
-  nameUrl      String?
+  nameUrl       String?
+  imageUrl      String?
 
   orderInFamily Int?
   parentOrder Int?

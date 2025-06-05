@@ -75,7 +75,22 @@ if (nameImage) {
   });
 }
 
-  return NextResponse.json({ urls: uploadResults, audioUrl, nameUrl });
+// Handle personal image (imageUrl)
+const personalImage = formData.get("image") as File | null;
+let imageUrl: string | null = null;
+
+if (personalImage) {
+  const buffer = Buffer.from(await personalImage.arrayBuffer());
+  imageUrl = await streamUpload(buffer, "image");
+  await prisma.person.update({
+    where: { id: personId },
+    data: { imageUrl }, // DB талд хадгална
+  });
+}
+
+
+  return NextResponse.json({ urls: uploadResults, audioUrl, nameUrl, imageUrl });
+
 
 }
 
@@ -84,7 +99,8 @@ export async function DELETE(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
   const isAudio = req.nextUrl.searchParams.get("isAudio");
   const isNameImage = req.nextUrl.searchParams.get("isNameImage");
-
+  const isImage = req.nextUrl.searchParams.get("isImage");
+  
   if (!personId || !url) {
     return NextResponse.json({ error: "personId болон url шаардлагатай" }, { status: 400 });
   }
@@ -112,6 +128,11 @@ export async function DELETE(req: NextRequest) {
     await prisma.person.update({
       where: { id: personId },
       data: { nameUrl: null },
+    });
+  }else if (isImage) {
+    await prisma.person.update({
+      where: { id: personId },
+      data: { imageUrl: null },
     });
   } else {
       await prisma.media.deleteMany({

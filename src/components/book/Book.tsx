@@ -16,7 +16,7 @@ import { usePersonsGroupedByGeneration } from "@/hooks/book/usePersonsGroupedByG
 import { useBookSequence } from "@/hooks/book/useBookSequence";
 import RecursiveCircleTree from "../RecursiveCircleTree";
 
-const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
+const Book: React.FC<{ initialIndex?: number }> = ({ initialIndex = 0 }) => {
     const flipBookRef = useRef<any>(null);
     const [showCover, setShowCover] = useState(true);
     const [isFlippingCover, setIsFlippingCover] = useState(false);
@@ -29,25 +29,31 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
     const [currentMediaIndex, setCurrentMediaIndex] = useState<Record<number, number>>({});
     const audioRef = useRef<HTMLAudioElement>(null);
     const [flipIndex, setFlipIndex] = useState(initialIndex);
-    
+    const [activeTree, setActiveTree] = useState<string | null>(null);
+
 
     const { groupedByGeneration, personMap, isLoading } = usePersonsGroupedByGeneration();
 
-  const familyMap: Record<string, any[]> = {};
-  Object.values(personMap).forEach((p) => {
-    p.parentRelations?.forEach((rel) => {
-      if (!familyMap[rel.parentId]) familyMap[rel.parentId] = [];
-      familyMap[rel.parentId].push(p);
+    const familyMap: Record<string, any[]> = {};
+    Object.values(personMap).forEach((p) => {
+        p.parentRelations?.forEach((rel) => {
+            if (!familyMap[rel.parentId]) familyMap[rel.parentId] = [];
+            familyMap[rel.parentId].push(p);
+        });
     });
-  });
 
-  const bookSequence = useBookSequence(groupedByGeneration, familyMap);
+    Object.keys(familyMap).forEach((parentId) => {
+        familyMap[parentId].sort((a, b) => (a.orderInFamily ?? Number.MAX_SAFE_INTEGER) - (b.orderInFamily ?? Number.MAX_SAFE_INTEGER));
+    });
+ 
+    const bookSequence = useBookSequence(groupedByGeneration, familyMap);
 
-  console.log("familyMap in book: ", familyMap)
-  console.log("groupedByGeneration in book: ", groupedByGeneration)
+    console.log("familyMap in book: ", familyMap)
+    console.log("groupedByGeneration in book: ", groupedByGeneration)
     console.log("bookSequence in book: ", bookSequence)
 
     const handleCoverClick = () => {
+        if (bookSequence.length === 0) return;
         setFlipIndex(0);
         const personLogicalIndex = Math.floor(0);
         fetchPersonData(personLogicalIndex);
@@ -66,20 +72,20 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
 
     const [singlePageMode, setSinglePageMode] = useState(false);
     const handlePageFlip = (e: any) => {
-         
+
         const newIndex = e.data;
-     
+
         setFlipIndex(newIndex);
         console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", newIndex)
-    const personLogicalIndex = Math.floor(newIndex / 2);
-    console.log("personLogicalIndexaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", personLogicalIndex)
+        const personLogicalIndex = Math.floor(newIndex / 2);
+        console.log("personLogicalIndexaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", personLogicalIndex)
         // fetchPersonData(personLogicalIndex);
         const currentEntry = bookSequence[personLogicalIndex];
         if (currentEntry?.type === "tree") {
             console.log("treeshdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
             setSinglePageMode(true);
         } else {
-            console.log("hunshdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",currentEntry )
+            console.log("hunshdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", currentEntry)
             setSinglePageMode(false);
         }
 
@@ -87,6 +93,18 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
             fetchPersonData(personLogicalIndex);
         }
     };
+    useEffect(() => {
+        const personLogicalIndex = Math.floor(flipIndex / 2);
+        const currentEntry = bookSequence[personLogicalIndex];
+
+        if (currentEntry?.type === "tree") {
+            // tree төрлийн хуудсанд автоматаар modal нээх
+            setActiveTree(currentEntry.rootId.id);
+        } else {
+            setActiveTree(null);
+        }
+    }, [flipIndex]);
+
 
     // const handlePageFlip = (e: any) => {
     //     const newIndex = e.data;
@@ -124,6 +142,7 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
 
     // Тухайн хуудасны тайлбар дуусах эсвэл default-аар тавьсан duration дуусахад автоор дараагийн хуудас руу орох, description урсаж буй хэсэг
     useAutoScroll({
+        setActiveTree,
         flipIndex,
         currentDurations,
         showCover,
@@ -145,6 +164,15 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
         personCount: bookSequence.length,
     });
 
+    const handleCloseTreeModal = () => {
+        setActiveTree(null);
+
+        // Дараагийн хуудас руу flip хийх
+        const totalPages = bookSequence.length * 2;
+        if (flipBookRef.current && flipIndex < totalPages - 1) {
+            flipBookRef.current.pageFlip().flipNext();
+        }
+    };
 
     return (
         <>
@@ -153,76 +181,102 @@ const Book: React.FC <{ initialIndex?: number }> = ({ initialIndex = 0 }) =>{
                 <CoverPage onClick={handleCoverClick} isFlipping={isFlippingCover} />
             ) : (
                 <HTMLFlipBook
-  ref={flipBookRef}
-  onFlip={handlePageFlip}
-  width={singlePageMode ? 1536 : 768}
-  height={700}
-  size="fixed"
-  showCover={false}
-  drawShadow
-  mobileScrollSupport={false}
-  className="flipbook-custom"
-//   minWidth={singlePageMode ? 768 : 768}
-//   maxWidth={singlePageMode ? 768 : 1536}
-  minHeight={700}
-  maxHeight={700}
-  maxShadowOpacity={0.5}
-  style={{
-    transition: "width 0.4s ease",
-  }}
->
+                    ref={flipBookRef}
+                    onFlip={handlePageFlip}
+                    width={singlePageMode ? 1536 : 768}
+                    height={700}
+                    size="fixed"
+                    showCover={false}
+                    drawShadow
+                    mobileScrollSupport={false}
+                    className="flipbook-custom"
+                    //   minWidth={singlePageMode ? 768 : 768}
+                    //   maxWidth={singlePageMode ? 768 : 1536}
+                    minHeight={700}
+                    maxHeight={700}
+                    maxShadowOpacity={0.5}
+                    style={{
+                        transition: "width 0.4s ease",
+                    }}
+                >
 
-        {bookSequence.map((entry, i) => {
-  if (entry.type === "person") {
-    return [
-      <div className="page" key={`desc-${entry.id}`}>
-        <PersonPage
-          index={i}
-          flipIndex={flipIndex}
-          personData={personData}
-          mediaData={mediaData}
-          currentMediaIndex={currentMediaIndex}
-          singleDescriptionRef={singleDescriptionRef}
-          scrollRef={scrollRef}
-        />
-      </div>,
-      <div className="page" key={`media-${entry.id}`}>
-        <MediaPage
-          index={i}
-          mediaData={mediaData}
-          currentMediaIndex={currentMediaIndex}
-        />
-      </div>,
-    ];
-  } else if (entry.type === "tree") {
-    return [
-      <div className="page" key={`tree-${entry.rootId.id}-1`}>
-  <RecursiveCircleTree
+                    {bookSequence.map((entry, i) => {
+                        if (entry.type === "person") {
+                            return [
+                                <div className="page" key={`desc-${entry.id}`}>
+                                    <PersonPage
+                                        index={i}
+                                        flipIndex={flipIndex}
+                                        personData={personData}
+                                        mediaData={mediaData}
+                                        currentMediaIndex={currentMediaIndex}
+                                        singleDescriptionRef={singleDescriptionRef}
+                                        scrollRef={scrollRef}
+                                    />
+                                </div>,
+                                <div className="page" key={`media-${entry.id}`}>
+                                    <MediaPage
+                                        index={i}
+                                        mediaData={mediaData}
+                                        currentMediaIndex={currentMediaIndex}
+                                    />
+                                </div>,
+                            ];
+                        } else if (entry.type === "tree") {
+                            return [
+                                <div className="page" key={`tree-${entry.rootId.id}-1`}>
+                                    {/* <RecursiveCircleTree
     rootId={entry.rootId.id}
     personMap={personMap}
     familyMap={familyMap}
-  />
-</div>,
-<div className="page" key={`tree-${entry.rootId.id}-2`}>
-  <RecursiveCircleTree
+  /> */}
+                                </div>,
+                                <div className="page" key={`tree-${entry.rootId.id}-2`}>
+                                    {/* <RecursiveCircleTree
     rootId={entry.rootId.id}
     personMap={personMap}
     familyMap={familyMap}
     focusOnlyChildren
-  />
-</div>
+  /> */}
+                                </div>
 
 
-    ];
-  } else {
-    return null;
-  }
-})}
+                            ];
+                        } else {
+                            return null;
+                        }
+                    })}
 
-        </HTMLFlipBook>
+                </HTMLFlipBook>
             )}
+            {activeTree && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center">
+                    <div
+                        className="relative w-[1000px] max-w-[80%] h-[80%]  rounded-2xl  p-6 animate-fadein overflow-auto custom-scroll"
+                    >
+                        <button
+                            onClick={handleCloseTreeModal}
+                            className="absolute top-4 right-4 z-50 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Хаах
+                        </button>
+
+
+                        <RecursiveCircleTree
+                            rootId={activeTree}
+                            personMap={personMap}
+                            familyMap={familyMap}
+                        />
+                    </div>
+                </div>
+            )}
+
+
+
         </>
     );
+
+
 };
 export default Book;
 

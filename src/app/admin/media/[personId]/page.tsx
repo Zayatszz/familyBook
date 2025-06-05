@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-
+import toast from "react-hot-toast";
 export default function MediaUploadPage() {
   const { personId } = useParams();
   const [files, setFiles] = useState<FileList | null>(null);
@@ -16,11 +16,18 @@ export default function MediaUploadPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-   const [nameFile, setNameFile] = useState<File | null>(null);
+  const [nameFile, setNameFile] = useState<File | null>(null);
   const [nameUrl, setNameUrl] = useState<string | null>(null);
   const [removedUrls, setRemovedUrls] = useState<string[]>([]);
   const [audioRemoved, setAudioRemoved] = useState(false);
   const [nameRemoved, setNameRemoved] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
+
+  const [lastName, setLastName] = useState<File | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+
 
   useEffect(() => {
     fetch(`/api/uploaded?personId=${personId}`)
@@ -28,23 +35,27 @@ export default function MediaUploadPage() {
       .then((data) => {
         setUploadedUrls(data.urls || []);
         if (data.audioUrl) setAudioUrl(data.audioUrl);
-        if (data.nameUrl) setNameUrl(data.nameUrl); 
+        if (data.nameUrl) setNameUrl(data.nameUrl);
+        if (data.imageUrl) setImageUrl(data.imageUrl);
+        if (data.lastName) setLastName(data.lastName);
+        if (data.firstName) setFirstName(data.firstName);
+
       })
       .catch(() => setUploadedUrls([]));
   }, [personId]);
 
   const handleUpload = async () => {
-    console.log("Hadgalah darsan imnida")
-    setIsUploading(true);
 
+    setIsUploading(true);
+    console.log("Hadgalah darsan imnida", isUploading)
     // Устгах файлуудыг сервер рүү явуулах
     for (const url of removedUrls) {
       await fetch(`/api/upload?personId=${personId}&url=${encodeURIComponent(url)}`, {
         method: "DELETE",
       });
     }
-    console.log("audioRemoved?:",audioRemoved)
-    console.log("audioUrl: "+audioUrl)
+    console.log("audioRemoved?:", audioRemoved)
+    console.log("audioUrl: " + audioUrl)
     if (audioRemoved && audioUrl) {
       await fetch(`/api/upload?personId=${personId}&url=${encodeURIComponent(audioUrl)}&isAudio=true`, {
         method: "DELETE",
@@ -53,19 +64,28 @@ export default function MediaUploadPage() {
     }
 
     if (nameRemoved && nameUrl) {
-  await fetch(`/api/upload?personId=${personId}&url=${encodeURIComponent(nameUrl)}&isNameImage=true`, {
-    method: "DELETE",
-  });
-  setNameUrl(null);
-}
+      await fetch(`/api/upload?personId=${personId}&url=${encodeURIComponent(nameUrl)}&isNameImage=true`, {
+        method: "DELETE",
+      });
+      setNameUrl(null);
+    }
+
+    if (imageRemoved && imageUrl) {
+      await fetch(`/api/upload?personId=${personId}&url=${encodeURIComponent(imageUrl)}&isImage=true`, {
+        method: "DELETE",
+      });
+      setImageUrl(null);
+    }
 
 
     // Шинэ файлуудыг upload хийх
-    if ((files && files.length > 0) || audioFile || nameFile) {
+    if ((files && files.length > 0) || audioFile || nameFile || imageFile) {
       const formData = new FormData();
       if (files) Array.from(files).forEach((file) => formData.append("files", file));
       if (audioFile) formData.append("audio", audioFile);
       if (nameFile) formData.append("nameImage", nameFile);
+      if (imageFile) formData.append("image", imageFile);
+
 
       try {
         const res = await fetch(`/api/upload?personId=${personId}`, {
@@ -73,14 +93,21 @@ export default function MediaUploadPage() {
           body: formData,
         });
 
+        if (res.ok) {
+          toast.success("Амжилттай хадгалагдлаа ✅");
+        }
         const data = await res.json();
         if (data.urls) setUploadedUrls((prev) => [...prev, ...data.urls]);
         if (data.audioUrl) setAudioUrl(data.audioUrl);
-         if (data.nameUrl) setNameUrl(data.nameUrl);
+        if (data.nameUrl) setNameUrl(data.nameUrl);
+        if (data.imageUrl) setImageUrl(data.imageUrl);
+
         setFiles(null);
         setAudioFile(null);
         setNameFile(null);
+        setImageFile(null);
       } catch (error) {
+        toast.error("Хадгалах үед алдаа гарлаа ❌");
         console.error("Upload error:", error);
       }
     }
@@ -88,6 +115,7 @@ export default function MediaUploadPage() {
     setRemovedUrls([]);
     setAudioRemoved(false);
     setIsUploading(false);
+
   };
 
   const removeUploaded = (url: string) => {
@@ -98,7 +126,7 @@ export default function MediaUploadPage() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-pink-700">
-        {personId}-ийн зураг/видео нэмэх
+        {lastName} {firstName}-ийн зураг/видео нэмэх
       </h2>
 
       <div className="space-y-4">
@@ -150,11 +178,11 @@ export default function MediaUploadPage() {
                 ) : (
                   <img src={url} alt="preview" className="w-full h-full object-cover" />
                 )}
-                
+
               </div>
             );
           })}
- <label className="border border-blue-500 text-blue-600 font-medium flex items-center justify-center aspect-square cursor-pointer rounded">
+          <label className="border border-blue-500 text-blue-600 font-medium flex items-center justify-center aspect-square cursor-pointer rounded">
             Зураг, бичлэг оруулах
             <input
               type="file"
@@ -175,7 +203,7 @@ export default function MediaUploadPage() {
             />
           </label>
         </div>
-{/* 
+        {/* 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mt-6">
          
         </div> */}
@@ -184,7 +212,7 @@ export default function MediaUploadPage() {
           <h3 className="text-lg font-semibold">Аудио файл</h3>
           {audioUrl && !audioRemoved ? (
             <div className="relative">
-           
+
               <audio controls src={audioUrl} className="w-full rounded border border-blue-400" />
               <button
                 onClick={() => {
@@ -200,7 +228,7 @@ export default function MediaUploadPage() {
             <p className="text-sm text-gray-500">Аудио файл байхгүй байна</p>
           )}
 
-   <Label htmlFor="audio-upload">Аудио файл нэмэх</Label>
+          <Label htmlFor="audio-upload">Аудио файл нэмэх</Label>
           {/* <Input
             type="file"
             accept="audio/*"
@@ -212,60 +240,97 @@ export default function MediaUploadPage() {
             className="mt-2"
           /> */}
           <Input
-  type="file"
-  accept="audio/*"
-  onChange={(e) => {
-    const file = e.target.files?.[0] || null;
-    setAudioFile(file);
-    if (audioUrl) {
-      setAudioRemoved(true); // Хуучин аудио устгах
-      // setAudioUrl(null);     // UI-гаас арилгах
-    }
-  }}
-  className="mt-2"
-/>
+            type="file"
+            accept="audio/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setAudioFile(file);
+              if (audioUrl) {
+                setAudioRemoved(true); // Хуучин аудио устгах
+                // setAudioUrl(null);     // UI-гаас арилгах
+              }
+            }}
+            className="mt-2"
+          />
 
         </div>
 
-         <div className="space-y-2 mt-8">
+        <div className="space-y-2 mt-8">
           <h3 className="text-lg font-semibold">Монгол бичгээр бичсэн нэрний зураг</h3>
-            {nameUrl && !nameRemoved ? (
-              <div className="relative">
-                <img
+          {nameUrl && !nameRemoved ? (
+            <div className="relative">
+              <img
                 height={100}
                 width={100}
-                  src={nameUrl}
-                  alt="Монгол бичгээр нэр"
-                  className=" rounded border border-blue-400 object-contain"
-                />
-                <button
-                  onClick={() => {
-                    setNameRemoved(true);
-                  }}
-                  className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-500 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">Монгол бичгийн зураг байхгүй байна</p>
-                        )}
-            <Label htmlFor="name-upload">Монгол бичиг нэр зураг оруулах</Label>
-            <Input
-              id="name-upload"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                setNameFile(file);
-                if (nameUrl) {
+                src={nameUrl}
+                alt="Монгол бичгээр нэр"
+                className=" rounded border border-blue-400 object-contain"
+              />
+              <button
+                onClick={() => {
                   setNameRemoved(true);
-                }
-              }}
-              className="mt-2"
-            />
+                }}
+                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-500 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Монгол бичгийн зураг байхгүй байна</p>
+          )}
+          <Label htmlFor="name-upload">Монгол бичиг нэр зураг оруулах</Label>
+          <Input
+            id="name-upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setNameFile(file);
+              if (nameUrl) {
+                setNameRemoved(true);
+              }
+            }}
+            className="mt-2"
+          />
 
         </div>
+
+        {/* ------------------ Өөрийн зураг оруулах ------------------ */}
+        <div className="space-y-2 mt-8">
+          <h3 className="text-lg font-semibold">Та өөрийн зургаа оруулна уу</h3>
+          {imageUrl && !imageRemoved ? (
+            <div className="relative w-40 aspect-square rounded border border-blue-400 overflow-hidden">
+              <img
+                src={imageUrl}
+                alt="Өөрийн зураг"
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() => setImageRemoved(true)}
+                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-500 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500"></p>
+          )}
+          <Label htmlFor="image-upload">Зураг сонгох</Label>
+          <Input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setImageFile(file);
+              if (imageUrl) {
+                setImageRemoved(true);
+              }
+            }}
+            className="mt-2"
+          />
+        </div>
+
       </div>
 
       <Button onClick={handleUpload} disabled={isUploading} className="bg-pink-700 text-white px-8 py-6">

@@ -1,6 +1,7 @@
 import { useEffect, MutableRefObject } from "react";
 
 export const useAutoScroll = ({
+  setActiveTree,
   flipIndex,
   currentDurations,
   showCover,
@@ -8,6 +9,7 @@ export const useAutoScroll = ({
   scrollRef,
   onAutoFlip,
 }: {
+  setActiveTree: string | null,
   flipIndex: number;
   currentDurations: Record<number, number>;
   showCover: boolean;
@@ -43,6 +45,7 @@ export const useAutoScroll = ({
         animationFrameId = requestAnimationFrame(step);
       } else if (!triggered) {
         triggered = true;
+          setActiveTree(null);
         setTimeout(() => onAutoFlip(), 3000);
       }
     };

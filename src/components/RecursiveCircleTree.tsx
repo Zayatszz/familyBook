@@ -115,6 +115,7 @@ const layers = collectLayers(currentFocusedId, 0, [], visited);
       </svg>
 
       <motion.div
+      
         className="absolute text-center z-20"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -127,11 +128,11 @@ const layers = collectLayers(currentFocusedId, 0, [], visited);
         onClick={() => handlePersonClick(currentFocusedId)}
       >
         <img
-        //   src={centerPerson.imageUrl}
-           src={"/bgBook.jpg"}
+          src={centerPerson.imageUrl || "/bgBook.jpg"}
           alt={centerPerson.name}
           className="w-24 h-24 rounded-full border-4 border-white shadow-md cursor-pointer"
         />
+
         <div className="mt-2 font-semibold">{centerPerson.firstName}</div>
       </motion.div>
 
@@ -146,16 +147,16 @@ const layers = collectLayers(currentFocusedId, 0, [], visited);
             className="absolute text-center cursor-pointer z-10"
             initial={{ x: center.x, y: center.y, opacity: 0, scale: 0.3 }}
             animate={{ x: x - 40, y: y - 40, opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.2, duration: 4, type: "spring", stiffness: 100 }}
+            transition={{ delay: index * 0.3, duration: 4, type: "spring", stiffness: 100 }}
             style={{ position: "absolute", transform: "translate(-50%, -50%)" }}
             onClick={() => handlePersonClick(child.id)}
           >
             <img
-            //   src={child.imageUrl}
-               src={"/bgBook.jpg"}
+              src={child.imageUrl || "/bgBook.jpg"}
               alt={child.firstName}
               className="w-20 h-20 rounded-full border shadow"
             />
+
             <div className="text-sm">{child.firstName}</div>
           </motion.div>
         );
@@ -172,7 +173,8 @@ const layers = collectLayers(currentFocusedId, 0, [], visited);
 
           return (
             <motion.div
-              key={p.id}
+              // key={`${p.id}-${layerIndex}-${i}`}
+               key={p.id}
               className="absolute text-center z-0 opacity-30"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 0.3, scale: 0.7 }}
@@ -183,11 +185,11 @@ const layers = collectLayers(currentFocusedId, 0, [], visited);
               }}
             >
               <img
-                // src={p.imageUrl}
-                src={"/bgBook.jpg"}
+                src={p.imageUrl || "/bgBook.jpg"}
                 alt={p.firstName}
                 className="w-16 h-16 rounded-full border border-dashed"
               />
+
               <div className="text-xs text-gray-500">{p.firstName}</div>
             </motion.div>
           );
