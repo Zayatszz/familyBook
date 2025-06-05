@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import toast from "react-hot-toast"; 
 
+
 export default function EditPersonPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -24,7 +25,28 @@ export default function EditPersonPage() {
     deathDate: "",
     audioUrl: "",
     description: "",
+    parentOrder:"",
+    parentId: "",
   });
+
+  const [availableParents, setAvailableParents] = useState<any[]>([]);
+
+useEffect(() => {
+  console.log("gen: ", form.familyPosition)
+  if (form.familyPosition) {
+    const prevGen = Number(form.familyPosition) - 1;
+    fetch(`/api/persons?generation=${prevGen}`)
+      .then((res) => res.json())
+      .then((data) => setAvailableParents(data));
+
+
+  } else {
+    setAvailableParents([]);
+  }
+  console.log("available datas: ", availableParents)
+  console.log("form.parentId : ",form.parentId )
+}, [form.familyPosition]);
+
 
   useEffect(() => {
     if (!id) return;
@@ -45,6 +67,16 @@ export default function EditPersonPage() {
           deathDate: data.deathDate ? data.deathDate.substring(0, 10) : "",
           audioUrl: data.audioUrl || "",
           description: data.description || "",
+          parentOrder: data.parentOrder?.toString() || "",
+          parentId: data.parentRelations?.[0]?.parentId || "",
+        });
+
+        fetch(`/api/person-relations/by-child/${id}`)
+        .then((res) => res.json())
+        .then((relation) => {
+          if (relation?.parentId) {
+            setForm((prev) => ({ ...prev, parentId: relation.parentId }));
+          }
         });
       })
       .catch((err) => console.error("Error loading person:", err));
@@ -64,6 +96,14 @@ export default function EditPersonPage() {
       body: JSON.stringify(form),
     });
 
+     if (form.parentId) {
+    await fetch("/api/person-relations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ parentId: form.parentId, childId: id }),
+    });
+  }
+ 
     setIsSaving(false); // 👈 хадгалах дууссан
      if (res.ok) {
     toast.success("Амжилттай хадгалагдлаа ✅");
@@ -71,6 +111,19 @@ export default function EditPersonPage() {
     toast.error("Хадгалах үед алдаа гарлаа ❌");
   }
   };
+
+  // parentId өөрчлөгдөхөд parentOrder-г автоматаар тохируулах
+useEffect(() => {
+  if (form.parentId && availableParents.length > 0) {
+    const selectedParent = availableParents.find((p) => p.id === form.parentId);
+    if (selectedParent?.orderInFamily) {
+      setForm((prev) => ({
+        ...prev,
+        parentOrder: selectedParent.orderInFamily.toString(),
+      }));
+    }
+  }
+}, [form.parentId, availableParents]);
 
   return (
     <div className="space-y-6">
@@ -127,6 +180,38 @@ export default function EditPersonPage() {
           <Label htmlFor="familyPosition" className="text-lg py-2 block">Хэддэх үе вэ?</Label>
           <Input name="familyPosition" value={form.familyPosition} onChange={handleChange} className="py-8 border-gray-300" />
         </div>
+
+        <div >
+          <Label htmlFor="parentId" className="text-lg py-2 block">Аав/Ээж сонгох</Label>
+          <select
+            name="parentId"
+            value={form.parentId || ""}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded py-5 px-4 text-sm"
+          >
+            <option value="">Сонгоно уу...</option>
+            {availableParents
+              .filter((p) => p.id !== id) // өөрийгөө сонгохоос сэргийл
+              .map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.lastName} {person.firstName}
+                </option>
+              ))}
+          </select>
+        </div>
+        
+ <div>
+          <Label htmlFor="parentOrder" className="text-lg py-2 block">
+            Таны аав/ээж хэд дэх хүүхэд вэ?
+          </Label>
+          <Input
+            name="parentOrder"
+            value={form.parentOrder}
+            readOnly
+            className="py-8 border-gray-300 bg-gray-100"
+          />
+        </div>
+
         <div>
           <Label htmlFor="birthDate" className="text-lg py-2 block">Төрсөн өдөр</Label>
           <Input type="date" name="birthDate" value={form.birthDate} onChange={handleChange} className="py-8 border-gray-300" />

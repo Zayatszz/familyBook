@@ -98,6 +98,11 @@ export async function DELETE(
       await deleteFromCloudinary(audioUrl, "video");
     }
 
+    await prisma.personRelation.deleteMany({
+      where: {
+        OR: [{ parentId: id }, { childId: id }],
+      },
+    });
     await prisma.media.deleteMany({ where: { personId: id } });
     await prisma.person.delete({ where: { id } });
 

@@ -22,7 +22,25 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(person, { status: 201 });
 }
 
-export async function GET() {
-  const persons = await prisma.person.findMany();
-  return NextResponse.json(persons);
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const generation = searchParams.get("generation");
+
+  try {
+    const people = await prisma.person.findMany({
+      where: generation
+        ? { generation: Number(generation) }
+        : {},
+        include: {
+        parentRelations: true, // 🔥 parentRelation-уудыг хамт ачаална
+      },
+      orderBy: { firstName: "asc" },
+    });
+
+    return NextResponse.json(people);
+  } catch (error) {
+    console.error("Алдаа:", error);
+    return NextResponse.json({ error: "Алдаа гарлаа" }, { status: 500 });
+  }
 }

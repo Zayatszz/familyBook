@@ -11,7 +11,8 @@ const Book: React.FC = () => {
   const [personData, setPersonData] = useState<Record<number, any>>({});
   const [mediaData, setMediaData] = useState<Record<number, any[]>>({});
   const singleDescriptionRef = useRef<HTMLParagraphElement | null>(null);
-  const [currentDuration, setCurrentDuration] = useState(0);
+ const [currentDurations, setCurrentDurations] = useState<Record<number, number>>({});
+
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -75,11 +76,9 @@ const Book: React.FC = () => {
 useEffect(() => {
   const personLogicalIndex = Math.floor(flipIndex / 2);
   const person = personData[personLogicalIndex];
-
   if (!person || showCover) return;
 
   const timeout = setTimeout(() => {
-    console.log("iiishee oryoo");
     requestAnimationFrame(() => {
       const el = singleDescriptionRef.current;
       if (!el) return;
@@ -87,15 +86,17 @@ useEffect(() => {
       const containerHeight = el.clientHeight;
       const contentHeight = el.scrollHeight;
       const distance = contentHeight - containerHeight;
-      const speed = 10; // илүү удаан гүйлгэх
-      const duration = distance > 0 ? Math.max(distance / speed, 5) : 0;
-      console.log("duration:", duration);
-      setCurrentDuration(duration);
+      const speed = 10;
+      let duration = distance > 0 ? Math.max(distance / speed, 5) : 0;
+      duration = Math.max(duration, 20); // ✅ Хамгийн багадаа 20 секунд
+
+      setCurrentDurations(prev => ({ ...prev, [personLogicalIndex]: duration }));
     });
   }, 300);
 
   return () => clearTimeout(timeout);
 }, [flipIndex, personData, showCover]);
+
 
 
   useEffect(() => {
@@ -149,7 +150,9 @@ const autoScrollTriggeredRef = useRef(false);
 
 const scrollRef = useRef<HTMLDivElement | null>(null);
 useEffect(() => {
-  if (!scrollRef.current || showCover) return;
+  const personLogicalIndex = Math.floor(flipIndex / 2);
+  const duration = currentDurations[personLogicalIndex];
+  if (!scrollRef.current || showCover || !duration) return;
 
   const container = singleDescriptionRef.current;
   const content = scrollRef.current;
@@ -157,12 +160,12 @@ useEffect(() => {
   if (!container || !content) return;
 
   const distance = content.scrollHeight - container.clientHeight;
-  const durationMs = currentDuration * 1000;
+  const durationMs = duration * 1000;
 
   let startTime: number | null = null;
   let animationFrameId: number;
 
-  autoScrollTriggeredRef.current = false; // ✅ always reset on new page
+  autoScrollTriggeredRef.current = false;
 
   const step = (timestamp: number) => {
     if (!startTime) startTime = timestamp;
@@ -176,7 +179,6 @@ useEffect(() => {
     } else if (!autoScrollTriggeredRef.current) {
       autoScrollTriggeredRef.current = true;
 
-      // ✅ 3 сек хүлээгээд дараагийн хуудсанд flip хийнэ (зөвхөн нэг удаа)
       setTimeout(() => {
         const totalPages = personIndex.length * 2;
         if (flipBookRef.current && flipIndex < totalPages - 1) {
@@ -190,7 +192,8 @@ useEffect(() => {
   animationFrameId = requestAnimationFrame(step);
 
   return () => cancelAnimationFrame(animationFrameId);
-}, [flipIndex, currentDuration, showCover]);
+}, [flipIndex, currentDurations, showCover]);
+
 useEffect(() => {
   if (audioRef.current) {
     audioRef.current.volume = 0.4; // 0.0 (чимээгүй) - 1.0 (хамгийн чанга)
@@ -276,36 +279,36 @@ useEffect(() => {
             </div>,
             
 
-<div className="page" key={`${id}-media`}>
-  <div className="page-content media-wrapper">
-    {mediaData[i]?.urls?.length ? (
-      mediaData[i].urls[currentMediaIndex[i] ?? 0].includes(".mp4") ? (
-        <video
-          className="media-frame"
-          src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
-          autoPlay
-          muted
-          controls
-        />
-      ) : (
-        <div className="media-container">
-          <img
-            className="media-blur-bg"
-            src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
-            alt="background blur"
-          />
-          <img
-            className="media-frame"
-            src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
-            alt="person"
-          />
-        </div>
-      )
-    ) : (
-      <div>Loading media...</div>
-    )}
-  </div>
-</div>
+    <div className="page" key={`${id}-media`}>
+      <div className="page-content media-wrapper">
+        {mediaData[i]?.urls?.length ? (
+          mediaData[i].urls[currentMediaIndex[i] ?? 0].includes(".mp4") ? (
+            <video
+              className="media-frame"
+              src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+              autoPlay
+              muted
+              controls
+            />
+          ) : (
+            <div className="media-container">
+              <img
+                className="media-blur-bg"
+                src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+                alt="background blur"
+              />
+              <img
+                className="media-frame"
+                src={mediaData[i].urls[currentMediaIndex[i] ?? 0]}
+                alt="person"
+              />
+            </div>
+          )
+        ) : (
+          <div>Loading media...</div>
+        )}
+      </div>
+    </div>
 
 
           ])}

@@ -1,7 +1,7 @@
 // src/app/admin/persons/add/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,22 @@ export default function AddPersonPage() {
     birthDate: "",
     deathDate: "",
     description: "",
+    parentId: ""
   });
+const [availableParents, setAvailableParents] = useState([]);
+const [isSaving, setIsSaving] = useState(false); 
+
+useEffect(() => {
+  if (form.familyPosition) {
+    const prevGen = Number(form.familyPosition) - 1;
+
+    fetch(`/api/persons?generation=${prevGen}`)
+      .then((res) => res.json())
+      .then((data) => setAvailableParents(data));
+  } else {
+    setAvailableParents([]);
+  }
+}, [form.familyPosition]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,21 +44,46 @@ export default function AddPersonPage() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
+setIsSaving(true); 
+  // 1. Хүнийг нэмэх
   const res = await fetch("/api/persons", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(form),
   });
 
-  if (res.ok) {
-    const data = await res.json(); // JSON хариу задлах
-    router.push(`/admin/persons/${data.id}`); // зөв id ашиглах
-  } else {
-    alert("Мэдээлэл хадгалахад алдаа гарлаа.");
+  if (!res.ok) return alert("Хадгалж чадсангүй");
+
+  const person = await res.json(); // шинэ хүний ID
+
+  // 2. Харилцаа үүсгэх
+  if (form.parentId) {
+    await fetch("/api/person-relations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        parentId: form.parentId,
+        childId: person.id,
+      }),
+    });
   }
+setIsSaving(false); 
+  router.push(`/admin/persons/${person.id}`);
 };
+
+useEffect(() => {
+  if (form.parentId) {
+    const selectedParent = availableParents.find(
+      (p: any) => p.id === form.parentId
+    );
+    if (selectedParent?.orderInFamily) {
+      setForm((prev) => ({
+        ...prev,
+        parentOrder: selectedParent.orderInFamily.toString(),
+      }));
+    }
+  }
+}, [form.parentId, availableParents]);
 
   return (
     <div className="space-y-6">
@@ -87,10 +127,38 @@ const handleSubmit = async (e: React.FormEvent) => {
           <Input name="orderInFamily" value={form.orderInFamily} onChange={handleChange} className="py-8 border-gray-300" />
         </div>
 
-        <div>
-          <Label htmlFor="parentOrder" className="text-lg py-2 block">Энэ овогтой холбогдож буй аав/ээж aйлын хэддэх хүүхэд вэ?</Label>
-          <Input name="parentOrder" value={form.parentOrder} onChange={handleChange} className="py-8 border-gray-300" />
+     
+
+      
+          <div >
+          <Label htmlFor="parentId" className="text-lg py-2 block">Аав/Ээж сонгох</Label>
+          <select
+            name="parentId"
+            value={form.parentId || ""}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded py-5 px-4 text-sm"
+          >
+            <option value="">Сонгоно уу...</option>
+            {availableParents.map((person: any) => (
+              <option key={person.id} value={person.id}>
+                {person.lastName} {person.firstName}
+              </option>
+            ))}
+          </select>
         </div>
+           <div>
+          <Label htmlFor="parentOrder" className="text-lg py-2 block">
+            Таны аав/ээж хэд дэх хүүхэд вэ?
+          </Label>
+          <Input
+            name="parentOrder"
+            value={form.parentOrder}
+            readOnly
+            className="py-8 border-gray-300 bg-gray-100"
+          />
+        </div>
+
+     
         <div>
           <Label htmlFor="birthDate" className="text-lg py-2 block">Төрсөн өдөр</Label>
           <Input type="date" name="birthDate" value={form.birthDate} onChange={handleChange} className="py-8 border-gray-300" />
@@ -115,8 +183,12 @@ const handleSubmit = async (e: React.FormEvent) => {
           />
         </div>
 
-     <Button type="submit" className="md:col-span-2 bg-pink-700 hover:bg-pink-900 px-10 py-8 text-white text-lg">
-          Хадгалах
+   <Button
+          type="submit"
+          className="md:col-span-2 bg-pink-700 hover:bg-pink-900 px-10 py-8 text-white text-lg"
+          disabled={isSaving}
+        >
+          {isSaving ? "Хадгалж байна..." : "Хадгалах"}
         </Button>
   
       </form>
